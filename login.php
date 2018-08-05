@@ -4,6 +4,7 @@ include 'apoio/mensagens.php';
 
 $valorInicial = array('email', 'senha', 'ativo');
 $paramInsert = ValorInicio($valorInicial);
+$mensagem = null;
 
 // VERIFICA SE FOI ENVIADO AS VARIÁVEIS ATRAVÉS DO POST
 if (isset($_POST['paramLogin']) && $_POST['paramLogin'] != "" && $_POST['paramSenha'] != "") {
@@ -19,49 +20,61 @@ if (isset($_POST['paramLogin']) && $_POST['paramLogin'] != "" && $_POST['paramSe
     $Res = pg_fetch_assoc($result);
 
     // VERIFICA SE ACHOU ALGUM USUÁRIO CADASTRADO CASO CONTRÁRIO DÁ UM ALERTA PARA O USUÁRIO
-    if (!$Res) {
-        foreach($_POST as $campo=>$valor){
-            $paramInsert[$campo] = $valor;
+    try{
+        if (!$Res) {
+            foreach($_POST as $campo=>$valor){
+                $paramInsert[$campo] = $valor;
+            }
+            throw new Exception("ALERTA: Login ou senha inválidos!");
+        }elseif($Res['ativo'] != 's'){
+
+            foreach($_POST as $campo=>$valor){
+                $paramInsert[$campo] = $valor;
+            }
+
+            throw new Exception("ALERTA: Este usuário não tem permissão de login!");
+        }else {
+            // CRIA AS SESSÕES DE VALIDAÇÃO DAS PAGINAS
+            session_start();
+            $_SESSION['IDlogin'] = $Res['id_login'];
+            $_SESSION['paramLogin'] = $Res['email'];
+            $_SESSION['paramSenha'] = $Res['senha'];
+
+            header("Location: index.php");
         }
-        Alert("Login ou senha inválidos!");
-    }elseif($Res['ativo'] != 's'){
-        
-        foreach($_POST as $campo=>$valor){
-            $paramInsert[$campo] = $valor;
-        }
-        
-        Alert("Este usuário não tem permissão de login!");
-    }else {
-        // CRIA AS SESSÕES DE VALIDAÇÃO DAS PAGINAS
-        session_start();
-        $_SESSION['IDlogin'] = $Res['id_login'];
-        $_SESSION['paramLogin'] = $Res['email'];
-        $_SESSION['paramSenha'] = $Res['senha'];
-        
-        header("Location: index.php");
+    }catch (Exception $ex){
+        $mensagem = sprintf("<div class='alert alert-danger' role='alert'>
+                        <strong>%s</strong></div>", $ex->getMessage());
     }
 }
 ?>
 <html>
     <?php include 'apoio/header.php'; ?>
-    <link rel="stylesheet" href="css/login.css">
-    <div class="bodyLogin">
-        <h3>Bem-Vindo</h3>
-        <body>
-            <div class="formulario">
-                <form id="login" name="login" action="login.php" method="POST" onsubmit="return check_form()">
-                    Email:<br />
-                    <input type="text" name="paramLogin" id="paramLogin" placeholder="Login" value="<?php echo @$paramInsert['paramLogin']; ?>"><br />
-
-                    Senha:<br />
-                    <input type="password" name="paramSenha" id="paramSenha" placeholder="*****" value="<?php echo @$paramInsert['paramSenha']; ?>"><br /><br />
-
-                    <input type="submit" name="btLogin" value="Entrar" class="login"><br>
-                </form>
-                <a href="redefineSenha.php" class="redSenha">Redefinir Senha</a>
+    <section class="container">
+        <div class="my-5 text-center">
+            <span class="h5 d-block"><b>Fazer Login</b></span>
+        </div>
+        <div class="row my-5 justify-content-center">
+            <div class="card" style="width: 30rem;">
+                <div class="card-body">
+                    <form action="login.php" method="POST">
+                        <div class="form-group">
+                            <label for="login">Login</label>
+                            <input type="email" name="paramLogin" class="form-control" id="loginEmail" aria-describedby="emailHelp"
+                                   placeholder="Example@email.com" value="<?php echo @$paramInsert['paramLogin']; ?>">
+                        </div>
+                        <div class="form-group">
+                            <label for="senha">Senha</label>
+                            <input type="password" name="paramSenha" class="form-control" id="loginSenha" aria-describedby="passHelp"
+                                   placeholder="*****" value="<?php echo @$paramInsert['paramSenha']; ?>">
+                        </div>
+                        <button type="submit" class="btn btn-outline-secondary" name="btLogin">Fazer Login</button>
+                        <small class="form-text text-muted">Esqueceu sua Senha? <a href="redefineSenha.php">Clique Aqui</a></small>
+                    </form>
+                    <?php if ($mensagem != null){echo $mensagem;}?>
+                </div>
             </div>
-        </body>
-    </div>
+        </div>
+    </section>
     <?php include 'apoio/footer.php'; ?>
 </html>
-

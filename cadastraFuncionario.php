@@ -8,6 +8,7 @@ $funcId = isset($_POST['id_funcao']) ? $_POST['id_funcao'] : '';
 $setorId = isset($_POST['id_setor']) ? $_POST['id_setor'] : '';
 $cidadeId = isset($_POST['id_cidade']) ? $_POST['id_cidade'] : '';
 $ativo = isset($_POST['ativo']) ? $_POST['ativo'] : null;
+$mensagem = null;
 
 $acao = isset($_POST['btCancelar']) ? ACAO_CONSULTAR : (isset($_REQUEST['acao']) ? $_REQUEST['acao'] : ACAO_CONSULTAR);
 $paramInsert = ValorInicio($valorInicial);
@@ -19,8 +20,7 @@ try {
 
     if (Gravar()) {
         try {
-            $paramInsert = @pg_escape_string($_POST);
-            
+
             $funcao = explode("|", $_POST['id_funcao']);
             $cpf = limpaString($_POST['cpf']);
             $tel = limpaString($_POST['telefone']);
@@ -71,189 +71,118 @@ try {
 
                 throw new Exception("Não foi possível cadastrar o usuário!!");
             } else {
-                echo "<SCRIPT type='text/javascript'> 
-                        alert('Funcionário cadastrado com Sucesso!');
-                        window.location.replace(\"listaFuncionario.php\");
-                    </SCRIPT>";
+//                echo "<SCRIPT type='text/javascript'>
+//                        alert('Funcionário cadastrado com Sucesso!');
+//                        window.location.replace(\"listaFuncionario.php\");
+//                    </SCRIPT>";
+
+                echo "<div class=\"modal fade bd-example-modal-sm\" tabindex=\"-1\" role=\"dialog\" 
+                                        aria-labelledby=\"modalSucesso\" aria-hidden=\"true\">
+                      <div class=\"modal-dialog modal-sm\">
+                        <div class=\"modal-content\">
+                          Funcionário cadastrado com Sucesso!
+                        </div>
+                      </div>
+                    </div>";
+
             }
         } catch (Exception $ex) {
             if ($transac) {
                 pg_query(ConnectPG(), 'rollback');
             }
-            $msg = $ex->getMessage();
-            Alert($msg);
+            $mensagem = sprintf("<div class='alert alert-danger' role='alert'>
+                        <strong>%s</strong></div>", $ex->getMessage());
         }
     }
 } catch (Exception $e) {
-    $mensagem = $e->getMessage();
-    Alert($mensagem);
+    $mensagem = sprintf("<div class='alert alert-danger' role='alert'>
+                        <strong>%s</strong></div>", $ex->getMessage());
 }
 ?>
 <html>
     <?php include 'apoio/header.php'; ?>
-    <div class="body">
-        <div class="formcadastro">
-            <h2 style="text-align: center">Cadastro de Funcionários</h2>
-            <fieldset>
-                <form action="cadastraFuncionario.php" method="POST" id="cadFuncionario">
-                    <input type="hidden" name="acao" value="<?php echo $acao; ?>">
-                    <input type="hidden" name="id_funcionario" value="<?php echo $funcId; ?>">
-                    <!--DADOS PESSOAIS --> 
-                    <fieldset>
-                        <legend>Dados Pessoais</legend>
-                        <table cellspacing="10">
-                            <tr>
-                                <td><label for="nome">Nome: </label></td>
-                                <td align="left">
-                                    <input type="text" name="nome" size="26" id="nome" placeholder="Nome do Funcionario" value="<?php echo $paramInsert['nome']; ?>">
-                                </td>
-                                <td><label>Nascimento: </label></td>
-                                <td align="left">
-                                    <input type="text" name="data_de_nascimento" id="data_nascimento" onkeypress="mascaraData(this)" size="16" placeholder="dd/mm/aa" value="<?php echo $paramInsert['data_de_nascimento']; ?>"> 
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><label>Email: </label></td>
-                                <td align="left">
-                                    <input type="text" name="email"  size="26" id="email" placeholder="email do Funcionario" value="<?php echo $paramInsert['email']; ?>"> 
-                                </td>
-                                <td><label for="rg">RG: </label></td>
-                                <td align="left">
-                                    <input type="text" name="rg" size="16" id="rg" placeholder="RG" maxlength="13" value="<?php echo $paramInsert['rg']; ?>"> 
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><label>CPF:</label></td>
-                                <td align="left">
-                                    <input type="text" maxlength="14" id="cpf" onkeydown="mascara(this,cpfMask)" size="16" name="cpf" placeholder="000.000.000-00" value="<?php echo $paramInsert['cpf']; ?>">
-                                </td>
-                                <td><label>Telefone: </label></td>
-                                <td align="left">
-                                    <input type="text" name="telefone" id="telefone" size="16" placeholder="(xx)xxxxx-xxxx" onkeyup="telmask(this)" value="<?php echo $paramInsert['telefone']; ?>"> 
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><label>Data de Admissão: </label></td>
-                                <td align="left">
-                                    <input type="text" name="dt_admissao" id="data_admissao" onkeypress="mascaraData(this)" size="16" placeholder="dd/mm/aa" value="<?php echo $paramInsert['dt_admissao']; ?>"> 
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><label>Cep: </label></td>
-                                <td><input name="cep" type="text" id="cep" value="<?php echo $paramInsert['cep']; ?>" placeholder="00000-000" size="10" maxlength="9" onblur="pesquisacep(this.value);"/></td>
-                                <td><label>Rua:</label></td>
-                                <td><input name="rua" type="text" id="rua" placeholder="Nome da Rua" size="16" value="<?php echo $paramInsert['rua'];?>"/></td>
-                            </tr>
-                            <tr>
-                                <td><label>Bairro:</label></td>
-                                <td><input name="bairro" type="text" id="bairro" placeholder="Logradouro" size="16" value="<?php echo $paramInsert['bairro'];?>"/></td>
-                                <td><label>Cidade:</label></td>
-                                <td><input name="cidade" type="text" id="cidade" placeholder="Nome da Cidade" size="16" value="<?php echo $paramInsert['cidade'];?>"/></td>
-                            </tr>
-                            <tr>
-                                <td><label>Estado:</label></td>
-                                <td><input name="uf" type="text" id="uf" placeholder="UF" size="2" value="<?php echo $paramInsert['uf'];?>"/></td>
-                            </tr>
-                        </table>
-                    </fieldset>
-                    <br />
-                    <!-- ENDEREÇO -->
-                    <fieldset>
-                        <legend>Dados de Função</legend>
-                        <table cellspacing="10">
-                            <tr>
-                                <td><label for="id_setor">Setor</label></td>
-                                <td align="left">
-                                    <select size="1" name="id_setor">
-                                        <?php echo GetSetor($setorId,null) ?>
-                                    </select>
-                                    <input type="submit" name="btCarregaFuncao" value="..."/>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><label for="id_funcao">Função:</label></td>
-                                <td align="left">
-                                    <select size="1" name="id_funcao"> 
-                                    <?php echo GetFuncao($setorId, $funcId) ?>
-                                    </select>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Permitir Login<input type="checkbox" name="ativo" value="s"></td>
-                            </tr>
-                        </table>
-                    </fieldset>
-                    <br />
-                    <input type="button" name="btCancelar" value="Cancelar" onclick="javascript: window.history.back();">
-                    <input type="submit" name="btEnviar" value="Cadastrar">
-                </form>
-            </fieldset>
-            <br>
+    <section class="container">
+        <div class="my-5 text-center">
+            <span class="h3"><b>Cadastro de Funcionários</b></span>
         </div>
-    </div>
-    <script>
-        $("#cadFuncionario").submit(function() {
-            if($("#nome").val()== null || $("#nome").val() ==""){
-                alert('Campo Nome está em branco!');     
-                return false;
-            }
-            
-            if($("#data_nascimento").val()== null || $("#data_nascimento").val() ==""){
-                alert('Campo Data de Nascimento está em branco!');     
-                return false;
-            }
-            
-            if($("#email").val()== null || $("#email").val() ==""){
-                alert('Campo Email está em branco!');     
-                return false;
-            }
-            
-            if($("#rg").val()== null || $("#rg").val() ==""){
-                alert('Campo RG está em branco!');     
-                return false;
-            }
-            
-            if($("#cpf").val()== null || $("#cpf").val() ==""){
-                alert('Campo CPF está em branco!');     
-                return false;
-            }
-            
-            if($("#telefone").val()== null || $("#telefone").val() ==""){
-                alert('Campo Telefone está em branco!');     
-                return false;
-            }
-            
-            if($("#data_admissao").val()== null || $("#data_admissao").val() ==""){
-                alert('Campo Data de Admissão está em branco!');     
-                return false;
-            }
-            
-            if($("#cep").val()== null || $("#cep").val() ==""){
-                alert('Campo CEP está em branco!');     
-                return false;
-            }
-            
-            if($("#rua").val()== null || $("#rua").val() ==""){
-                alert('Campo Rua está em branco!');     
-                return false;
-            }
-            
-            if($("#bairro").val()== null || $("#bairro").val() ==""){
-                alert('Campo Bairro está em branco!');     
-                return false;
-            }
-            
-            if($("#cidade").val()== null || $("#cidade").val() ==""){
-                alert('Campo Cidade está em branco!');     
-                return false;
-            }
-            
-            if($("#uf").val()== null || $("#uf").val() ==""){
-                alert('Campo UF está em branco!');     
-                return false;
-            }
-        });
-    </script>
+        <?php if ($mensagem != null){echo $mensagem;}?>
+        <form action="cadastraFuncionario.php" method="POST">
+            <input type="hidden" name="acao" value="<?php echo $acao; ?>">
+            <input type="hidden" name="id_funcionario" value="<?php echo $funcId; ?>">
+            <fieldset id="coluna1">
+                <div class="form-group">
+                    <label for="nome">Nome</label>
+                    <input type="nome" class="form-control" id="nameInput" aria-describedby="nameHelp"
+                           placeholder="Nome do Funcionário" name="nome" autofocus value="<?php echo $paramInsert['nome']; ?>">
+                </div>
+                <div class="form-group">
+                    <label for="dataNascimento">Data de Nascimento</label>
+                    <input type="date" class="form-control" id="data_de_nascimento"  name="data_de_nascimento" placeholder="dd/mm/aaaa" value="<?php echo $paramInsert['data_de_nascimento']; ?>">
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" class="form-control" id="email" name="email" placeholder="example@mail.com" value="<?php echo $paramInsert['email']; ?>">
+                </div>
+                <div class="form-group">
+                    <label for="rg">RG</label>
+                    <input type="text" class="form-control" id="rg" name="rg" placeholder="Número de RG" value="<?php echo $paramInsert['rg']; ?>">
+                </div>
+                <div class="form-group">
+                    <label for="cpf">CPF</label>
+                    <input type="text" class="form-control" id="cpf" name="cpf" placeholder="000.000.000-00" onkeydown="mascara(this,cpfMask);" value="<?php echo $paramInsert['cpf']; ?>">
+                </div>
+                <div class="form-group">
+                    <label for="telefone">Telefone</label>
+                    <input type="text" class="form-control" id="telefone" name="telefone" placeholder="(xx)xxxxx-xxxx" onkeydown="telmask(this)" value="<?php echo $paramInsert['telefone']; ?>">
+                </div>
+                <div class="form-group">
+                    <label for="setor">Setor</label>
+                    <select class="form-control bg-light" id="inputSetor">
+                        <?php echo GetSetor($setorId,null); ?>
+                    </select>
+                </div>
+                <div class="form-group form-check col-6">
+                    <input type="checkbox" class="form-check-input" id="ativo" name="ativo" value="s">
+                    <label class="form-check-label" for="ativo">Permitir Acesso</label>
+                    <small class="form-text text-muted">Define se o Funcionário terá permissão de login no sistema.</small>
+                </div>
+            </fieldset>
+            <fieldset id="coluna2">
+                <div class="form-group">
+                    <label for="dataAdmissao">Data de Admissão</label>
+                    <input type="date" class="form-control" id="data_admissao" name="dt_admissao" value="<?php echo $paramInsert['dt_admissao']; ?>">
+                </div>
+                <div class="form-group">
+                    <label for="cep">Cep</label>
+                    <input name="cep" type="text" class="form-control" id="cep" value="<?php echo $paramInsert['cep']; ?>" placeholder="00000-000" onblur="pesquisacep(this.value);">
+                </div>
+                <div class="form-group">
+                    <label for="rua">Rua</label>
+                    <input name="rua" type="text" class="form-control" id="rua" placeholder="Nome da Rua" value="<?php echo $paramInsert['rua'];?>">
+                </div>
+                <div class="form-group">
+                    <label for="bairro">Bairro</label>
+                    <input name="bairro" type="text" class="form-control" id="bairro" placeholder="Nome do Bairro" value="<?php echo $paramInsert['bairro'];?>">
+                </div>
+                <div class="form-group">
+                    <label for="cidade">Cidade</label>
+                    <input name="cidade" type="text" class="form-control" id="cidade" placeholder="Nome da Cidade" value="<?php echo $paramInsert['cidade'];?>">
+                </div>
+                <div class="form-group">
+                    <label for="estado">Estado</label>
+                    <input name="uf" type="text" class="form-control" id="uf" placeholder="UF" value="<?php echo $paramInsert['uf'];?>">
+                </div>
+                <div class="form-group">
+                    <label for="funcao">Função</label>
+                    <select class="form-control bg-light" id="inputFuncao">
+                        <?php echo GetFuncao($setorId,$funcId); ?>
+                    </select>
+                </div>
+            </fieldset>
+            <div class="clearfix"></div>
+            <button type="button" name="btCancelar" class="btn btn-outline-danger" onclick="javascript: window.history.back();">Cancelar</button>
+            <button type="submit" class="btn btn-outline-secondary" name="btEnviar">Cadastrar</button>
+        </form>
+    </section>
     <?php include 'apoio/footer.php'; ?>
 </html>
-

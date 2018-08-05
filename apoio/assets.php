@@ -105,7 +105,7 @@ function GetSetor($setorId = '',$campo) {
     $sel = ($setorId == $campo)?'selected=""':'';
     
     
-    $listaSetor = "<option value=\"\"$sel>-------</option>";
+    $listaSetor = "<option value=\"\"$sel>Selecione o Setor</option>";
     while ($row = @pg_fetch_array($result, null, PGSQL_ASSOC)) {
         $funcBanco = $row['id_setor'];
         $sel = ($setorId == $funcBanco) ? 'selected="selected"' : '';
@@ -129,7 +129,7 @@ function GetFuncao($setorId, $funcId = '', $idFuncionario = '') {
 
         //$sel = ($setorId == $idFuncionario) ? 'selected=""' : '';
         $sel = ($idFuncionario == $idFuncionario) ? 'selected=""' : '';
-        $funcaoLista = "<option value=\"\"$sel>-------</option>";
+        $funcaoLista = "<option value=\"\"$sel>Selecione a Função</option>";
         while ($row = @pg_fetch_array($result, null, PGSQL_ASSOC)) {
             $funcBanco = $row['id_funcao'];
             $sel = ($funcId == $funcBanco) ? 'selected="selected"' : '';
