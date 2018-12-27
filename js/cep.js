@@ -25,7 +25,7 @@
     }
         
     function pesquisacep(valor) {
-
+        //v = v.replace(/\D/g, "")
         //Nova variável "cep" somente com dígitos.
         var cep = valor.replace(/\D/g, '');
 

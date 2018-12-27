@@ -80,7 +80,8 @@ try {
         //$novo = sprintf('<a href="cadastraFuncionario.php?acao=%s" title="Novo Funcionário"><img src="img/add.png"/></a>', ACAO_INSERT);
 
         $funcionarioLista .= sprintf("<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>",
-            $row['nome'], date('d/m/Y', strtotime($row['data de nascimento'])), $row['email'], date('d/m/Y', strtotime($row['admissao'])), $row['funcao'], $row['cidade'], /*$novo,*/ $apagar, $editar);
+            $row['nome'], date('d/m/Y', strtotime($row['data de nascimento'])), $row['email'], date('d/m/Y', strtotime($row['admissao'])),
+            $row['funcao'], $row['cidade'], /*$novo,*/ $apagar, $editar);
 
     }
 } catch (Exception $e) {
